@@ -50,17 +50,21 @@ def main():
     random_results = []
     solid_results = []
     trials = 100000
-    start_t = time.perf_counter()
 
+    #run trials for both options, time results
+    start_t = time.perf_counter()
     with multiprocessing.Pool() as pool:
         random_results = tuple(pool.imap_unordered(fools_game, range(trials),chunksize=trials//multiprocessing.cpu_count()))
         solid_results = tuple(pool.imap_unordered(smart_game, range(trials),chunksize=trials//multiprocessing.cpu_count()))
-
     end_t = time.perf_counter()
     print(f"{trials} trials done in {((end_t-start_t)*1000000/trials):.2f} ns per iteration")
+
+    #collect results into dicts for analysis
     random_counter = collections.Counter(random_results)
     solid_counter = collections.Counter(solid_results)
     print(random_counter, solid_counter, sep ="\n")
+
+    #plot results using matplotlib
     fig, axs = plt.subplots(1, 2, sharey=True, tight_layout=True)
     for ax in axs: ax.set_xticks(range(20))
     axs[0].hist(random_results, bins = len(random_counter))
