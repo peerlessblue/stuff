@@ -16,24 +16,50 @@ def adj_max(arg):
             return x
     return 0
 
+def list_game(choice_function):
+    # create an empty list of length 20
+    list_size = 20
+    lst = [None] * list_size
+    count = 0
+    empty_indices = list(range(20))
+    while True:
+        # generate a random integer between 1 and 999
+        num = random.randint(1, 999)
+        
+        # find an empty index where the number can be inserted
+        valid_indices = [i for i in empty_indices if (i == 0 or adj_max(lst[:i]) <= num) and (i == list_size -1 or adj_min(lst[i+1:]) >= num)]
+        if not valid_indices:
+            break
+        
+        # choose a random index from the valid indices and insert the number
+        index = choice_function(valid_indices, num)
+        lst[index] = num
+        empty_indices.remove(index)
+        count += 1
+        
+    return count
+
 def get_range(lst,num):
-    copy = lst[:]
-    if num <= copy[1]:
-        return copy[2]
-    while copy[3] is not None:
-        copy = copy[3]
-        if copy[0] <= num <= copy[1]:
-            return copy[2]
-    return ()
+    for sub in lst:
+        if sub[0] <= num <= sub[1]:
+            return sub[2]
+    return range()
 
 def insert_range(lst,num,index):
-    tail = lst
-    while tail[2][-1] <= index:        
-        tail = tail[3]
-    
+    i = 0
+    while index > lst[i][2][-1]:
+        i += 1
+    if len(lst[i][2]) == 1:
+        lst.pop(i)
+    elif index == lst[i][2][0]:
+        lst[i] = [num,lst[i][1],range(index+1,lst[i][2][-1]+1)]
+    elif index == lst[i][2][-1]:
+        lst[i] = [lst[i][0],num,range(lst[i][2][0],index)]
+    else:
+        lst.insert(i,[lst[i][0],num,range(lst[i][2][0],index)])
+        lst[i+1] = [num,lst[i+1][1],range(index+1,lst[i][2][-1]+1)]
 
-
-def list_game(choice_function):
+def new_list_game(choice_function):
     # create an empty list of length 20
     list_size = 20
     lst = [None] * list_size
