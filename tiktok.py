@@ -2,6 +2,7 @@ import random
 import time
 import collections
 import matplotlib.pyplot as plt
+import multiprocessing
 
 def adj_min(arg):
     arg = [x for x in arg if x is not None]
@@ -39,14 +40,22 @@ def list_game(choice_function):
         
     return count
 
+def fools_game(*_):
+    return list_game(lambda x,_: random.choice(x))
+
+def smart_game(*_):
+    return list_game(lambda x,y: min(x, key=lambda z:abs((z+0.5)*50-y)))
+
 def main():
     random_results = []
     solid_results = []
     trials = 100000
     start_t = time.perf_counter()
-    for i in range(trials):
-        random_results += [list_game(lambda x,_: random.choice(x))]
-        solid_results += [list_game(lambda x,y: min(x, key=lambda z:abs((z+0.5)*50-y)))]
+
+    with multiprocessing.Pool() as pool:
+        random_results = tuple(pool.imap_unordered(fools_game, range(trials),chunksize=trials//multiprocessing.cpu_count()))
+        solid_results = tuple(pool.imap_unordered(smart_game, range(trials),chunksize=trials//multiprocessing.cpu_count()))
+
     end_t = time.perf_counter()
     print(f"{trials} trials done in {((end_t-start_t)*1000000/trials):.2f} ns per iteration")
     random_counter = collections.Counter(random_results)
@@ -60,4 +69,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-# initial: 100000 trials done in 211.39 ns per iteration
+# initial:  100000 trials done in 211.39 ns per iteration
+# mp:       100000 trials done in 160.98 ns per iteration
+# mp tuple: 100000 trials done in 139.34 ns per iteration
+# mp chunk: 100000 trials done in  52.62 ns per iteration
