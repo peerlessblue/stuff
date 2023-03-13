@@ -61,9 +61,10 @@ def main():
     random_counter = collections.Counter(random_results)
     solid_counter = collections.Counter(solid_results)
     print(random_counter, solid_counter, sep ="\n")
-    fig, axs = plt.subplots(1, tight_layout=True)
-    axs.set_xticks(range(20))
-    axs.hist(solid_results, bins = len(solid_counter))
+    fig, axs = plt.subplots(1, 2, sharey=True, tight_layout=True)
+    for ax in axs: ax.set_xticks(range(20))
+    axs[0].hist(random_results, bins = len(random_counter))
+    axs[1].hist(solid_results, bins = len(solid_counter))
     plt.show()
 
 if __name__ == "__main__":
