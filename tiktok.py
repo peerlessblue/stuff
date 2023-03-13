@@ -5,37 +5,53 @@ import matplotlib.pyplot as plt
 import multiprocessing
 
 def adj_min(arg):
-    arg = [x for x in arg if x is not None]
-    if arg:
-        return min(arg)
-    else:
-        return 1000
+    for x in arg:
+        if x is not None:
+            return x
+    return 1000
         
 def adj_max(arg):
-    arg = [x for x in arg if x is not None]
-    if arg:
-        return max(arg)
-    else:
-        return -1
+    for x in arg[::-1]:
+        if x is not None:
+            return x
+    return 0
+
+def get_range(lst,num):
+    copy = lst[:]
+    if num <= copy[1]:
+        return copy[2]
+    while copy[3] is not None:
+        copy = copy[3]
+        if copy[0] <= num <= copy[1]:
+            return copy[2]
+    return ()
+
+def insert_range(lst,num,index):
+    tail = lst
+    while tail[2][-1] <= index:        
+        tail = tail[3]
+    
+
 
 def list_game(choice_function):
     # create an empty list of length 20
-    lst = [None] * 20
+    list_size = 20
+    lst = [None] * list_size
     count = 0
-    
+    empty_indices = list(range(20))
     while True:
         # generate a random integer between 1 and 999
         num = random.randint(1, 999)
         
         # find an empty index where the number can be inserted
-        empty_indices = [i for i, x in enumerate(lst) if x is None]
-        valid_indices = [i for i in empty_indices if (i == 0 or adj_max(lst[:i]) <= num) and (adj_min(lst[i:]) >= num or i == len(lst)-1)]
+        valid_indices = [i for i in empty_indices if (i == 0 or adj_max(lst[:i]) <= num) and (i == list_size -1 or adj_min(lst[i+1:]) >= num)]
         if not valid_indices:
             break
         
         # choose a random index from the valid indices and insert the number
         index = choice_function(valid_indices, num)
         lst[index] = num
+        empty_indices.remove(index)
         count += 1
         
     return count
@@ -77,4 +93,6 @@ if __name__ == "__main__":
 # initial:  100000 trials done in 211.39 ns per iteration
 # mp:       100000 trials done in 160.98 ns per iteration
 # mp tuple: 100000 trials done in 139.34 ns per iteration
-# mp chunk: 100000 trials done in  52.62 ns per iteration
+# mp chunk: 100000 trials done in 52.62 ns per iteration
+# rm comp:  100000 trials done in 45.21 ns per iteration
+# new adj:  100000 trials done in 33.08 ns per iteration
