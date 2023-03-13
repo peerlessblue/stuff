@@ -1,4 +1,5 @@
 import random
+import time
 import collections
 import matplotlib.pyplot as plt
 
@@ -41,9 +42,13 @@ def list_game(choice_function):
 def main():
     random_results = []
     solid_results = []
-    for i in range(100000):
+    trials = 100000
+    start_t = time.perf_counter()
+    for i in range(trials):
         random_results += [list_game(lambda x,_: random.choice(x))]
         solid_results += [list_game(lambda x,y: min(x, key=lambda z:abs((z+0.5)*50-y)))]
+    end_t = time.perf_counter()
+    print(f"{trials} trials done in {((end_t-start_t)*1000000/trials):.2f} ns per iteration")
     random_counter = collections.Counter(random_results)
     solid_counter = collections.Counter(solid_results)
     print(random_counter, solid_counter, sep ="\n")
@@ -54,3 +59,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# initial: 100000 trials done in 211.39 ns per iteration
