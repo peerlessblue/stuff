@@ -7,6 +7,7 @@ import multiprocessing
 def get_range(lst,num):
 	for sub in lst:
 		if sub[0] <= num <= sub[1]:
+			#return the range where num falls inside the bounds
 			return sub[2]
 	return []
 
@@ -15,12 +16,16 @@ def insert_range(lst,num,index):
 	while index > lst[i][2][-1]:
 		i += 1
 	if len(lst[i][2]) == 1:
+		#If the range we chose has only one available index left, discard it
 		lst.pop(i)
 	elif index == lst[i][2][0]:
+		#If the index is at the beginning of the range, trim it up
 		lst[i] = [num,lst[i][1],range(index+1,lst[i][2][-1]+1)]
 	elif index == lst[i][2][-1]:
+		#If the index is at the end of the range, trim it down
 		lst[i] = [lst[i][0],num,range(lst[i][2][0],index)]
 	else:
+		#If the index is in the middle of the range, split it in half
 		lst.insert(i,[lst[i][0],num,range(lst[i][2][0],index)])
 		lst[i+1] = [num,lst[i+1][1],range(index+1,lst[i+1][2][-1]+1)]
 
@@ -28,40 +33,42 @@ def list_game(choice_function):
 	# create an empty list of length 20
 	list_size = 20
 	count = 0
+	#to start, there is one range spanning the entire insertion list
 	indices = [[0,1000,range(list_size)]]
 	valid_indices = indices[0][2]
 	num = random.randint(1, 999)
 	while valid_indices:
 		# choose an index from the valid indices and insert the number
 		index = choice_function(valid_indices, num)
+		# insert_range will split indices to maintain contiguous ranges of open indices
 		insert_range(indices,num,index)
 		count += 1
-
 		# generate a new random integer between 1 and 999
 		num = random.randint(1, 999)
-
 		# find an empty index where the number can be inserted
 		valid_indices = get_range(indices,num)
-
 	return count
 
 def fools_game(*_):
+	# wrap random.choice, discarding num
 	return list_game(lambda x,_: random.choice(x))
 
 def smart_game(*_):
-	"""equivalent code:
-		def choice(valid_indices, num):
-			num_range = 1000
-			num_indices = 20
-			width = num_range / num_indices
-			best_choice = valid_indices[0]
-			best_distance = abs((valid_indices[0] + 0.5) * width - num)
-			for x in valid_indices:
-				distance = abs((x + 0.5) * width - num)
-				if distance < best_distance:
-					best_choice = x
-					best_distance = distance
-			return best_choice
+	"""
+	equivalent code:
+
+	def choice(valid_indices, num):
+		num_range = 1000
+		num_indices = 20
+		width = num_range / num_indices
+		best_choice = valid_indices[0]
+		best_distance = abs((valid_indices[0] + 0.5) * width - num)
+		for x in valid_indices:
+			distance = abs((x + 0.5) * width - num)
+			if distance < best_distance:
+				best_choice = x
+				best_distance = distance
+		return best_choice
 	"""
 	return list_game(lambda x,y: min(x, key=lambda z:abs((z+0.5)*50-y)))
 
@@ -70,7 +77,6 @@ def main():
 	solid_results = []
 	trials = 1000000
 	multipro = True
-
 	#run trials for both options, time results
 	start_t = time.perf_counter()
 	if multipro:
@@ -83,12 +89,10 @@ def main():
 			solid_results += [smart_game()]
 	end_t = time.perf_counter()
 	print(f"{trials} trials done in {((end_t-start_t)*1000000/trials):.2f} ns per iteration")
-
-	#collect results into dicts for analysis
+	#collect results into Counter objects (like dicts) for analysis
 	random_counter = collections.Counter(random_results)
 	solid_counter = collections.Counter(solid_results)
 	print(random_counter, solid_counter, sep ="\n")
-
 	#plot results using matplotlib
 	fig, axs = plt.subplots(1, 2, sharey=True, tight_layout=True)
 	for ax in axs: ax.set_xticks(range(21))
